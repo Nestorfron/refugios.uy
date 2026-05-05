@@ -9,8 +9,10 @@ import {
 } from "react-leaflet";
 import { refugiosMock, reportesMock } from "../data/mockData";
 import L from "leaflet";
-import { LocateFixed } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import "leaflet/dist/leaflet.css";
+import { createRoot } from "react-dom/client";
+
 
 // ICONOS
 const refugioIcon = new L.Icon({
@@ -23,23 +25,6 @@ const reporteIcon = new L.Icon({
   iconSize: [28, 28],
 });
 
-// BOTÓN CENTRAR
-const CenterButton = ({ userLocation }) => {
-  const map = useMap();
-
-  return (
-    <button
-      onClick={() => {
-        if (userLocation) {
-          map.setView(userLocation, 15);
-        }
-      }}
-      className="absolute bottom-3 right-3 z-[1000] bg-white p-2 rounded-full shadow-md active:scale-90 transition"
-    >
-      <LocateFixed size={18} />
-    </button>
-  );
-};
 
 // CLICK HANDLER (para modal)
 const ClickHandler = ({ onMapClick }) => {
@@ -48,6 +33,55 @@ const ClickHandler = ({ onMapClick }) => {
       onMapClick?.(e.latlng);
     },
   });
+  return null;
+};
+
+const CenterButton = ({ userLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const control = L.control({ position: "bottomright" });
+
+    control.onAdd = () => {
+      const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+
+      const root = createRoot(div);
+
+      root.render(
+        <button
+          className="absolute bottom-3 right-3 z-[1000] bg-white p-2 rounded-full shadow-md active:scale-90 transition"
+          onClick={() => {
+            if (userLocation) {
+              map.setView(userLocation, 15);
+            }
+          }}
+          style={{
+            background: "green",
+            color: "white",
+            padding: "8px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "60px",
+            height: "60px",
+            cursor: "pointer",
+          }}
+        >
+          <AlertTriangle size={26} />
+        </button>
+      );
+
+      return div;
+    };
+
+    control.addTo(map);
+
+    return () => {
+      control.remove();
+    };
+  }, [map, userLocation]);
+
   return null;
 };
 

@@ -190,12 +190,7 @@ export default function Home() {
         </div>
 
         {/* 7. BOTÓN FLOATING MOBILE REPORTAR (Esquina) */}
-        <button
-          onClick={() => setModalOpen(true)}
-          className="md:hidden fixed bottom-6 right-6 z-40 bg-[#008f72] text-white p-5 rounded-full shadow-2xl active:scale-90 transition-transform flex items-center justify-center"
-        >
-          <AlertTriangle size={26} />
-        </button>
+        
       </main>
 
       <ModalReporte open={modalOpen} onClose={() => setModalOpen(false)} coords={coords} />
