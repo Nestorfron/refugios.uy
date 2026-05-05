@@ -10,25 +10,22 @@ export default {
   ],
   darkMode: "class",
   theme: {
-    extend: {
-      colors: {
-        light: {
-          bg: "#fffde7",        // amarillo pastel claro
-          card: "#ffffff",      // blanco puro
-          text: "#1e1e1e",      // gris oscuro neutro
-          accent: "#ffca28",    // amarillo dorado vibrante
-          secondary: "#3f51b5", // índigo vibrante
+    theme: {
+      extend: {
+        keyframes: {
+          floatUp: {
+            '0%': { transform: 'translateY(20px)', opacity: '0' },
+            '100%': { transform: 'translateY(0)', opacity: '1' },
+          },
+          pulseHeart: {
+            '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+            '50%': { transform: 'scale(1.1)', opacity: '0.9' },
+          },
         },
-        dark: {
-          bg: "#1a1a2e",        // azul muy oscuro
-          card: "#16213e",      // azul oscuro
-          text: "#f3f4f6",      // gris claro
-          accent: "#ffeb3b",    // amarillo brillante
-          secondary: "#82b1ff", // azul celeste pastel
+        animation: {
+          floatUp: 'floatUp 0.5s ease-out forwards',
+          pulseHeart: 'pulseHeart 1.5s ease-in-out infinite',
         },
-      },
-      boxShadow: {
-        glass: "0 8px 24px rgba(0,0,0,0.3)",
       },
     },
   },

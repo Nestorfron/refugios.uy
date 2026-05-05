@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { registerSW } from "virtual:pwa-register";
 
+// 📄 Pages
 import Home from "./pages/Home";
-
+import Mapa from "./pages/Mapa";
+import Reportar from "./pages/Reportar";
 
 function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -32,35 +34,24 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          {/* 🏠 Home */}
           <Route path="/" element={<Home />} />
+
+          {/* 🗺️ Mapa */}
+          <Route path="/mapa" element={<Mapa />} />
+
+          {/* 🚨 Reportar */}
+          <Route path="/reportar" element={<Reportar />} />
         </Routes>
       </BrowserRouter>
 
+      {/* 🔄 Update banner (mejorado con Tailwind) */}
       {updateAvailable && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: "#333",
-            color: "#fff",
-            padding: "1rem",
-            textAlign: "center",
-            zIndex: 9999,
-          }}
-        >
-          🔄 Nueva versión disponible.&nbsp;
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 text-center z-50 flex items-center justify-center gap-4">
+          <span>🔄 Nueva versión disponible</span>
           <button
             onClick={handleUpdate}
-            style={{
-              cursor: "pointer",
-              background: "#fff",
-              color: "#333",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "4px",
-            }}
+            className="bg-white text-gray-900 px-3 py-1 rounded font-medium"
           >
             Actualizar
           </button>
