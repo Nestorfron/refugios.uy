@@ -115,7 +115,7 @@ export default function Home() {
 
         {/* 4. SIDEBAR MOBILE (Mejorado) */}
         {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex animate-fadeInTransition">
+          <div className="fixed inset-0 bg-black/60 z-50 flex animate-fadeInTransition overflow-y-auto">
             <div className="w-[85%] max-w-sm bg-white h-full shadow-2xl flex flex-col animate-slideInRight">
                 <div className="p-5 border-b flex justify-between items-center">
                     <h2 className="text-xl font-bold">Menú</h2>
@@ -143,7 +143,7 @@ export default function Home() {
         )}
 
         {/* 5. SECCIÓN INFERIOR: STATS Y CARD REPORTAR (Flotantes) */}
-        <div className="hidden md:flex absolute bottom-8 left-8 right-[440px] z-20 gap-5 items-end">
+        <div className="hidden lg:flex absolute bottom-8 left-8 right-[440px] z-20 gap-5 items-end">
           
           {/* Card Reportar Flotante (Izquierda) */}
           <div className="bg-white p-6 rounded-3xl shadow-2xl border border-gray-100 w-[300px] flex-shrink-0 animate-floatUp">
@@ -162,7 +162,7 @@ export default function Home() {
           </div>
 
           {/* Grid de Stats + Tu Ayuda */}
-          <div className="flex flex-1 gap-5">
+          <div className="flex flex-1 gap-2 mt-4">
             <StatCard icon={<HomeIcon className="text-green-600"/>} value="28" label="Refugios disponibles" />
             <StatCard icon={<div className="flex -space-x-1.5"><div className="w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white shadow"/><div className="w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white shadow"/></div>} value="190" label="Cupos disponibles" />
             <StatCard icon={<AlertTriangle className="text-orange-500"/>} value="7" label="Reportes recientes (últimas 24hs)" />
@@ -208,19 +208,19 @@ export default function Home() {
 /* SIDEBAR (Con scroll elegante) */
 function Sidebar({ refugios }) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow">
         <div className="p-7 pb-5 border-b border-gray-100">
           <h2 className="text-2xl font-extrabold text-gray-950 tracking-tight">Refugios cercanos</h2>
           <p className="text-sm text-gray-500 mt-1">Mostrando lugares a menos de 5km.</p>
         </div>
         
-        <div className="p-6 overflow-y-auto flex-1 space-y-4.5 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+        <div className="p-4 bg-white overflow-y-auto flex-1 space-y-4.5 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-hide">
           {refugios.map((r) => (
             <RefugioCard key={r.id} r={r} />
           ))}
         </div>
 
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+        <div className="p-6 border-t border-gray-100 bg-white">
             <button className="w-full py-3.5 border-2 border-[#008f72]/20 text-[#008f72] rounded-2xl font-bold text-[15px] hover:bg-[#008f72]/5 hover:border-[#008f72]/30 transition-all active:scale-[0.99]">
               Ver todos los refugios
             </button>
@@ -245,7 +245,7 @@ function StatCard({ icon, value, label }) {
 /* CARD DE REFUGIO (Diseño horizontal idéntico) */
 function RefugioCard({ r }) {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex group hover:shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-0.5 active:translate-y-0">
+    <div className="my-2 bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex group hover:shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-0.5 active:translate-y-0">
       <img src={r.imagen} alt={r.nombre} className="w-28 h-28 object-cover transition-transform duration-500 group-hover:scale-105" />
 
       <div className="p-4 flex-1 flex flex-col justify-between">
