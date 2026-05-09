@@ -5,3 +5,8 @@
 body {
   font-family: 'Inter', sans-serif;
 }
+
+/* en tu CSS global */
+.leaflet-container {
+  z-index: 0 !important;
+}

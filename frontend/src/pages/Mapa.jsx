@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  useMap,
   useMapEvents,
 } from "react-leaflet";
 import { refugiosMock, reportesMock } from "../data/mockData";
 import L from "leaflet";
 import { AlertTriangle } from "lucide-react";
 import "leaflet/dist/leaflet.css";
-import { createRoot } from "react-dom/client";
-
 
 // ICONOS
 const refugioIcon = new L.Icon({
@@ -25,8 +22,7 @@ const reporteIcon = new L.Icon({
   iconSize: [28, 28],
 });
 
-
-// CLICK HANDLER (para modal)
+// CLICK HANDLER (map click manual)
 const ClickHandler = ({ onMapClick }) => {
   useMapEvents({
     click(e) {
@@ -36,53 +32,55 @@ const ClickHandler = ({ onMapClick }) => {
   return null;
 };
 
-const CenterButton = ({ userLocation }) => {
-  const map = useMap();
+// BOTÓN CENTRAR + GUARDAR UBICACIÓN
+const BotonCentrar = ({ userLocation, mapRef, setUserLocation, onMapClick }) => {
+  const handleClick = () => {
+    // Si ya tenemos ubicación → usarla
+    if (userLocation && mapRef.current) {
+      mapRef.current.setView(userLocation, 15);
 
-  useEffect(() => {
-    const control = L.control({ position: "bottomright" });
+      // opcional: usarla como punto de reporte
+      onMapClick?.({
+        lat: userLocation[0],
+        lng: userLocation[1],
+      });
 
-    control.onAdd = () => {
-      const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      return;
+    }
 
-      const root = createRoot(div);
+    // Si NO tenemos ubicación → pedirla
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = [pos.coords.latitude, pos.coords.longitude];
 
-      root.render(
-        <button
-          className="absolute bottom-3 right-3 z-[1000] bg-white p-2 rounded-full shadow-md active:scale-90 transition"
-          onClick={() => {
-            if (userLocation) {
-              map.setView(userLocation, 15);
-            }
-          }}
-          style={{
-            background: "green",
-            color: "white",
-            padding: "8px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "60px",
-            height: "60px",
-            cursor: "pointer",
-          }}
-        >
-          <AlertTriangle size={26} />
-        </button>
-      );
+        setUserLocation(coords);
 
-      return div;
-    };
+        if (mapRef.current) {
+          mapRef.current.setView(coords, 15);
+        }
 
-    control.addTo(map);
+        // opcional: mandar ubicación para reporte
+        onMapClick?.({
+          lat: coords[0],
+          lng: coords[1],
+        });
+      },
+      () => {
+        console.log("No se pudo obtener ubicación");
+      }
+    );
+  };
 
-    return () => {
-      control.remove();
-    };
-  }, [map, userLocation]);
-
-  return null;
+  return (
+    <button
+      onClick={handleClick}
+      className="absolute left-3 bottom-10 z-[1000]
+                 bg-green-600 hover:bg-green-700 text-white
+                 p-3 rounded-full shadow-lg transition active:scale-90"
+    >
+      <AlertTriangle size={26} />
+    </button>
+  );
 };
 
 const Mapa = ({ mostrarReportes = false, onMapClick }) => {
@@ -90,7 +88,9 @@ const Mapa = ({ mostrarReportes = false, onMapClick }) => {
   const [reportes] = useState(reportesMock);
   const [userLocation, setUserLocation] = useState(null);
 
-  // GEOLOCALIZACIÓN
+  const mapRef = useRef(null);
+
+  // GEOLOCALIZACIÓN INICIAL (opcional)
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -108,6 +108,7 @@ const Mapa = ({ mostrarReportes = false, onMapClick }) => {
         center={userLocation || [-34.9011, -56.1645]}
         zoom={13}
         className="h-full w-full"
+        ref={mapRef}
       >
         <TileLayer
           attribution="&copy; OpenStreetMap"
@@ -118,11 +119,7 @@ const Mapa = ({ mostrarReportes = false, onMapClick }) => {
 
         {/* REFUGIOS */}
         {refugios.map((r) => (
-          <Marker
-            key={r.id}
-            position={[r.lat, r.lng]}
-            icon={refugioIcon}
-          >
+          <Marker key={r.id} position={[r.lat, r.lng]} icon={refugioIcon}>
             <Popup>
               <div>
                 <h3 className="font-bold">{r.nombre}</h3>
@@ -146,9 +143,15 @@ const Mapa = ({ mostrarReportes = false, onMapClick }) => {
               <Popup>{rep.descripcion}</Popup>
             </Marker>
           ))}
-
-        <CenterButton userLocation={userLocation} />
       </MapContainer>
+
+      {/* BOTÓN INTELIGENTE */}
+      <BotonCentrar
+        userLocation={userLocation}
+        mapRef={mapRef}
+        setUserLocation={setUserLocation}
+        onMapClick={onMapClick}
+      />
     </div>
   );
 };
