@@ -11,7 +11,8 @@ export default function ModalReporte({ open, onClose, coords }) {
   const [lluvia, setLluvia] = useState(false);
   const [salud, setSalud] = useState(false);
 
-  const { refreshData } = useAppContext();
+
+  const { refreshData, user } = useAppContext();
 
   if (!open) return null;
 
@@ -30,13 +31,15 @@ export default function ModalReporte({ open, onClose, coords }) {
     };
 
     try {
-      await postData(
-        "/reportes",
-        reporte,
-        localStorage.getItem("token")
-      );
+      await postData("/reportes", reporte, localStorage.getItem("token"));
 
-      await refreshData();
+      if (user === null) {
+        alert("Reporte creado correctamente");
+        onClose();
+        return;
+      } else {
+        refreshData();
+      }
 
       setDescripcion("");
       setEstadoPersona("");
@@ -54,7 +57,6 @@ export default function ModalReporte({ open, onClose, coords }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6">
-
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg flex items-center gap-2">
@@ -77,7 +79,6 @@ export default function ModalReporte({ open, onClose, coords }) {
 
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
           {/* ESTADO PERSONA */}
           <select
             value={estadoPersona}
@@ -156,7 +157,6 @@ export default function ModalReporte({ open, onClose, coords }) {
               Enviar
             </button>
           </div>
-
         </form>
       </div>
     </div>

@@ -22,6 +22,8 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
+    setReportes([]);
+
     setUser(null);
   };
 
@@ -52,14 +54,22 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const refreshData = async () => {
+  try {
     const token = localStorage.getItem("token");
 
     const refugiosData = await fetchData("/refugios");
-
     setRefugios(refugiosData);
 
-    setReportes(await fetchData("/reportes", token));
-  };
+    if (token) {
+      const reportesData = await fetchData("/reportes", token);
+      setReportes(reportesData);
+    } else {
+      setReportes([]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   return (
     <AppContext.Provider
