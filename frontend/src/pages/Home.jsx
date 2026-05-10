@@ -93,7 +93,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-100vh bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
+    <div className="flex flex-col h-screen bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
       {/* NAVBAR */}
       <header className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-30 shadow-sm">
         {/* LOGO */}
