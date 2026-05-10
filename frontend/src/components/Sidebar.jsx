@@ -70,9 +70,7 @@ export default function Sidebar({ refugios, onSelectRefugio }) {
 
       {/* FOOTER */}
       <div className="p-5 border-t border-gray-100 bg-white/90 backdrop-blur-md">
-        <button className="w-full py-3.5 rounded-2xl bg-[#008f72] text-white font-bold text-[15px] shadow-md hover:bg-[#00715b] transition-all active:scale-[0.98]">
-          Ver todos los refugios
-        </button>
+        
       </div>
     </div>
   );

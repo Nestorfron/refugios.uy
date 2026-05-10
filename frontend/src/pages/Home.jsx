@@ -8,6 +8,7 @@ import CreateRefugioModal from "../components/RefugioModal";
 import { useAppContext } from "../context/AppContext";
 
 import Sidebar from "../components/Sidebar";
+import SidebarReport from "../components/SidebarReport";
 import StatCard from "../components/StatCard";
 
 import {
@@ -23,6 +24,10 @@ import {
   UserPlus,
   Building2,
   LogOut,
+  Clock,
+  Thermometer,
+  CloudRain,
+  Activity,
 } from "lucide-react";
 
 export default function Home() {
@@ -36,14 +41,14 @@ export default function Home() {
   const [selectedRefugio, setSelectedRefugio] = useState(null);
   const [search, setSearch] = useState("");
   const [soloDisponibles, setSoloDisponibles] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  
 
   useEffect(() => {
-  
     if (
       selectedRefugio &&
-      !refugiosFiltrados.some(
-        (r) => r.id === selectedRefugio.id
-      )
+      !refugiosFiltrados.some((r) => r.id === selectedRefugio.id)
     ) {
       setSelectedRefugio(null);
     }
@@ -69,17 +74,43 @@ export default function Home() {
     setLoginOpen(true);
   };
 
+  // FILTROS
+
   const refugiosFiltrados = refugios.filter((r) => {
     const coincideBusqueda = r.nombre
       .toLowerCase()
       .includes(search.toLowerCase());
-  
+
     const coincideDisponibles = soloDisponibles
       ? Number(r.cupos || 0) > 0
       : true;
-  
+
     return coincideBusqueda && coincideDisponibles;
   });
+
+  // REPORTES
+
+  const getUrgenciaScore = (r) => {
+    let score = 0;
+
+    if (r.salud) score += 3;
+    if (r.esta_solo) score += 2;
+    if (r.frio) score += 1;
+    if (r.lluvia) score += 1;
+
+    return score;
+  };
+
+  const reportesOrdenados = [...reportes].sort(
+    (a, b) => getUrgenciaScore(b) - getUrgenciaScore(a)
+  );
+
+  const getUrgenciaColor = (r) => {
+    if (r.estado_persona === "critico") return "bg-red-500";
+    if (r.salud) return "bg-orange-400";
+    if (r.frio || r.lluvia) return "bg-yellow-400";
+    return "bg-blue-400";
+  };
 
   return (
     <div className="flex flex-col h-screen bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
@@ -161,6 +192,7 @@ export default function Home() {
           <Mapa
             mostrarReportes={true}
             selectedRefugio={selectedRefugio}
+            selectedReport={selectedReport}
             onMapClick={(latlng) => {
               setCoords(latlng);
               setModalOpen(true);
@@ -216,7 +248,10 @@ export default function Home() {
 
         {/* SIDEBAR DESKTOP */}
         <aside className="flex ms-auto max-w-[25%] hidden md:flex bg-white/80 backdrop-blur-xl border-l z-20">
-          <Sidebar refugios={refugiosFiltrados} onSelectRefugio={setSelectedRefugio} />
+          <Sidebar
+            refugios={refugiosFiltrados}
+            onSelectRefugio={setSelectedRefugio}
+          />
         </aside>
 
         {/* SIDEBAR MOBILE */}
@@ -256,11 +291,13 @@ export default function Home() {
             icon={<HomeIcon size={18} />}
           />
 
-          <StatCard
-            value={reportes.length}
-            label="Reportes"
-            icon={<AlertTriangle size={18} />}
-          />
+          <div onClick={() => setReportsOpen(true)} className="cursor-pointer">
+            <StatCard
+              value={reportes.length}
+              label="Reportes"
+              icon={<AlertTriangle size={18} />}
+            />
+          </div>
 
           <div className="bg-white px-3 py-3 lg:px-4 lg:py-4 rounded-2xl shadow-md border border-gray-100 flex items-center gap-3 w-[150px] lg:w-[170px] xl:w-[190px]">
             <Heart size={20} className="text-red-500" />
@@ -294,6 +331,15 @@ export default function Home() {
       <CreateRefugioModal
         open={createRefugioOpen}
         onClose={() => setCreateRefugioOpen(false)}
+      />
+
+      {/* SIDEBAR REPORTS */}
+      <SidebarReport
+        open={reportsOpen}
+        onClose={() => setReportsOpen(false)}
+        reportes={reportes}
+        onSelectReport={setSelectedReport}
+        getUrgenciaColor={getUrgenciaColor}
       />
     </div>
   );

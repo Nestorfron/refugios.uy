@@ -1,10 +1,11 @@
 import { MapPin, Phone } from "lucide-react";
+import refugioIcon from "../assets/favicon.svg";
 
 export default function RefugioCard({ r }) {
   return (
     <div className="my-2 bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex group hover:shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-0.5 active:translate-y-0">
       <img
-        src={r.imagen}
+        src={r.imagen || refugioIcon}
         alt={r.nombre}
         className="w-28 h-28 object-cover transition-transform duration-500 group-hover:scale-105"
       />

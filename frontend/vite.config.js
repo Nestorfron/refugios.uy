@@ -14,8 +14,8 @@ export default defineConfig({
         'mask-icon.svg'
       ],
       manifest: {
-        name: 'Mi Aplicación PWA',
-        short_name: 'MiApp',
+        name: 'Refugios UY',
+        short_name: 'Refugios UY',
         description: 'Aplicación React con soporte PWA',
         theme_color: '#ffffff',
         background_color: '#ffffff',

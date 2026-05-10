@@ -5,37 +5,55 @@ import { useAppContext } from "../context/AppContext";
 
 export default function ModalReporte({ open, onClose, coords }) {
   const [descripcion, setDescripcion] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [estadoPersona, setEstadoPersona] = useState("");
+  const [estaSolo, setEstaSolo] = useState(false);
+  const [frio, setFrio] = useState(false);
+  const [lluvia, setLluvia] = useState(false);
+  const [salud, setSalud] = useState(false);
+
   const { refreshData } = useAppContext();
 
   if (!open) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const reporte = {
       descripcion,
-      tipo,
+      estado_persona: estadoPersona,
+      esta_solo: estaSolo,
+      frio,
+      lluvia,
+      salud,
       lat: coords?.lat,
       lng: coords?.lng,
     };
 
     try {
-      postData( "/reportes", reporte, localStorage.getItem("token"));
+      await postData(
+        "/reportes",
+        reporte,
+        localStorage.getItem("token")
+      );
+
+      await refreshData();
+
+      setDescripcion("");
+      setEstadoPersona("");
+      setEstaSolo(false);
+      setFrio(false);
+      setLluvia(false);
+      setSalud(false);
+
+      onClose();
     } catch (error) {
       alert(error.message);
     }
-
-    setDescripcion("");
-    setTipo("");
-    refreshData();
-    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 animate-fadeIn">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6">
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
@@ -60,18 +78,57 @@ export default function ModalReporte({ open, onClose, coords }) {
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* TIPO */}
+          {/* ESTADO PERSONA */}
           <select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
+            value={estadoPersona}
+            onChange={(e) => setEstadoPersona(e.target.value)}
             className="w-full border rounded-xl p-2 text-sm"
             required
           >
-            <option value="">Tipo de situación</option>
-            <option>Persona durmiendo</option>
-            <option>Necesita asistencia</option>
-            <option>Posible riesgo</option>
+            <option value="">Estado de la persona</option>
+            <option value="estable">Estable</option>
+            <option value="critico">Crítico</option>
+            <option value="inconsciente">Inconsciente</option>
           </select>
+
+          {/* CHECKS */}
+          <div className="flex flex-col gap-2 text-sm">
+            <label>
+              <input
+                type="checkbox"
+                checked={estaSolo}
+                onChange={(e) => setEstaSolo(e.target.checked)}
+              />{" "}
+              Está solo
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={frio}
+                onChange={(e) => setFrio(e.target.checked)}
+              />{" "}
+              Tiene frío
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={lluvia}
+                onChange={(e) => setLluvia(e.target.checked)}
+              />{" "}
+              Expuesto a lluvia
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={salud}
+                onChange={(e) => setSalud(e.target.checked)}
+              />{" "}
+              Problema de salud
+            </label>
+          </div>
 
           {/* DESCRIPCION */}
           <textarea

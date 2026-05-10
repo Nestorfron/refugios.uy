@@ -16,7 +16,7 @@ export default function LoginModal({
 }) {
 
   const [loading, setLoading] = useState(false);
-  const { setUser } = useAppContext();
+  const { setUser, refreshData } = useAppContext();
 
   const [form, setForm] = useState({
     email: "",
@@ -48,6 +48,7 @@ export default function LoginModal({
       localStorage.setItem("token", data.token);
 
       onClose();
+      refreshData();
 
     } catch (error) {
       alert(error.message);
