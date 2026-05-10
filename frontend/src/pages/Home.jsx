@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Mapa from "../pages/Mapa";
 import ModalReporte from "../components/ModalReporte";
 import LoginModal from "../components/LoginModal";
+import RegisterModal from "../components/RegisterModal";
+import CreateRefugioModal from "../components/RefugioModal";
+
+import { useAppContext } from "../context/AppContext";
 
 import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
@@ -15,60 +19,67 @@ import {
   Heart,
   ChevronDown,
   X,
-  User
+  User,
+  UserPlus,
+  Building2,
+  LogOut,
 } from "lucide-react";
 
 export default function Home() {
-  const [refugios] = useState([
-    {
-      id: 1,
-      nombre: "Refugio Centro",
-      direccion: "Mercedes 1234, Centro",
-      telefono: "099 123 456",
-      cupos: 12,
-      distancia: "500 m",
-      imagen:
-        "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=400",
-    },
-    {
-      id: 2,
-      nombre: "Casa Abierta",
-      direccion: "Canelones 1450, Centro",
-      telefono: "098 765 432",
-      cupos: 8,
-      distancia: "1.2 km",
-      imagen:
-        "https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=400",
-    },
-    {
-      id: 3,
-      nombre: "Refugio Norte",
-      direccion: "Av. Italia 3200, Aguada",
-      telefono: "094 555 789",
-      cupos: 15,
-      distancia: "1.8 km",
-      imagen:
-        "https://images.unsplash.com/photo-1486406146926-c627a92af1bd?q=80&w=400",
-    },
-    {
-      id: 4,
-      nombre: "Hogar Solidario",
-      direccion: "Bvar Artigas 1999, Unión",
-      telefono: "097 246 810",
-      cupos: 5,
-      distancia: "2.1 km",
-      imagen:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=400",
-    },
-  ]);
+  const { user, refugios, totalCupos, reportes, loading, logout } =
+    useAppContext();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [coords, setCoords] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [createRefugioOpen, setCreateRefugioOpen] = useState(false);
+  const [selectedRefugio, setSelectedRefugio] = useState(null);
+  const [search, setSearch] = useState("");
+  const [soloDisponibles, setSoloDisponibles] = useState(false);
+
+  useEffect(() => {
+  
+    if (
+      selectedRefugio &&
+      !refugiosFiltrados.some(
+        (r) => r.id === selectedRefugio.id
+      )
+    ) {
+      setSelectedRefugio(null);
+    }
+  }, [search, soloDisponibles, refugios]);
 
   // LOGIN
   const [loginOpen, setLoginOpen] = useState(false);
-  const [usuario, setUsuario] = useState(null);
+
+  // REGISTER
+  const [registerOpen, setRegisterOpen] = useState(false);
+
+  const handleUserButton = () => {
+    if (user) {
+      const confirmar = window.confirm("¿Seguro que querés cerrar sesión?");
+
+      if (confirmar) {
+        logout();
+      }
+
+      return;
+    }
+
+    setLoginOpen(true);
+  };
+
+  const refugiosFiltrados = refugios.filter((r) => {
+    const coincideBusqueda = r.nombre
+      .toLowerCase()
+      .includes(search.toLowerCase());
+  
+    const coincideDisponibles = soloDisponibles
+      ? Number(r.cupos || 0) > 0
+      : true;
+  
+    return coincideBusqueda && coincideDisponibles;
+  });
 
   return (
     <div className="flex flex-col h-screen bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
@@ -82,20 +93,13 @@ export default function Home() {
 
           <div>
             <h1 className="text-xl font-extrabold">RefugiosUY</h1>
+
             <p className="text-xs text-gray-400">Red de apoyo y solidaridad</p>
           </div>
         </div>
 
         {/* NAV DESKTOP */}
-        <nav className="hidden lg:flex gap-8 font-semibold text-gray-700">
-          <button className="text-[#008f72] border-b-2 border-[#008f72]">
-            Mapa
-          </button>
-
-          <button>Refugios</button>
-
-          <button>Cómo ayudar</button>
-        </nav>
+        <nav className="hidden lg:flex gap-8 font-semibold text-gray-700"></nav>
 
         {/* ACTIONS */}
         <div className="flex items-center gap-3">
@@ -108,19 +112,38 @@ export default function Home() {
             Reportar
           </button>
 
-          {/* LOGIN */}
-          {/* LOGIN */}
+          {/* REGISTER */}
+          {user?.rol === "ADMIN" && (
+            <button
+              onClick={() => setRegisterOpen(true)}
+              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
+            >
+              <UserPlus size={20} />
+            </button>
+          )}
+
+          {/* CREATE REFUGIO */}
+          {user?.rol === "ADMIN" && (
+            <button
+              onClick={() => setCreateRefugioOpen(true)}
+              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
+            >
+              <Building2 size={20} />
+              <p className="flex font-bold">+</p>
+            </button>
+          )}
+
+          {/* LOGIN / LOGOUT */}
           <button
-            onClick={() => setLoginOpen(true)}
-            className="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#008f72] text-white hover:bg-[#00715b] transition shadow-sm"
+            onClick={handleUserButton}
+            className={`flex items-center justify-center w-11 h-11 rounded-2xl transition shadow-sm ${
+              user
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-[#008f72] hover:bg-[#00715b] text-white"
+            }`}
+            title={user ? "Cerrar sesión" : "Iniciar sesión"}
           >
-            {usuario ? (
-              <span className="text-sm font-bold">
-                {usuario.nombre.charAt(0)}
-              </span>
-            ) : (
-              <User size={20} />
-            )}
+            {user ? <LogOut size={20} /> : <User size={20} />}
           </button>
 
           {/* MOBILE MENU */}
@@ -137,41 +160,69 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <Mapa
             mostrarReportes={true}
+            selectedRefugio={selectedRefugio}
             onMapClick={(latlng) => {
               setCoords(latlng);
               setModalOpen(true);
             }}
           />
 
-          {/* BUSCADOR */}
-          <div className="hidden md:flex absolute top-6 left-6 z-50 gap-3">
-            <div className="bg-white rounded-xl flex items-center px-4 py-3 shadow-md w-[300px]">
-              <Search size={18} className="text-gray-400 mr-2" />
+          {/* BUSCADOR + FILTROS */}
+          <div className="absolute top-5 left-12 right-5 md:right-auto z-[1000]">
+            <div className="flex flex-col md:flex-row gap-3 md:items-center">
+              {/* SEARCH */}
+              <div className="bg-white/95 backdrop-blur-xl border border-white/40 rounded-2xl flex items-center px-4 py-3 shadow-2xl w-full md:w-[360px]">
+                <Search size={18} className="text-gray-400 mr-3 shrink-0" />
 
-              <input
-                type="text"
-                placeholder="Buscar refugios..."
-                className="outline-none w-full"
-              />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar refugios..."
+                  className="outline-none w-full bg-transparent text-sm font-medium placeholder:text-gray-400"
+                />
+
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="ml-2 text-gray-400 hover:text-gray-700"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* FILTRO */}
+              <button
+                onClick={() => setSoloDisponibles(!soloDisponibles)}
+                className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl shadow-xl border transition-all font-semibold text-sm backdrop-blur-xl ${
+                  soloDisponibles
+                    ? "bg-[#008f72] text-white border-[#008f72]"
+                    : "bg-white/95 text-gray-700 border-white/40 hover:bg-gray-50"
+                }`}
+              >
+                <SlidersHorizontal size={16} />
+                Disponibles
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${
+                    soloDisponibles ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
             </div>
-
-            <button className="bg-white rounded-xl px-4 py-3 shadow-md flex items-center gap-2 hover:bg-gray-50 transition">
-              <SlidersHorizontal size={16} />
-              Filtros
-              <ChevronDown size={14} />
-            </button>
           </div>
         </div>
 
         {/* SIDEBAR DESKTOP */}
-        <aside className="hidden md:flex absolute right-0 top-0 bottom-0 w-[410px] bg-white/80 backdrop-blur-xl border-l z-20">
-          <Sidebar refugios={refugios} />
+        <aside className="flex ms-auto max-w-[25%] hidden md:flex bg-white/80 backdrop-blur-xl border-l z-20">
+          <Sidebar refugios={refugiosFiltrados} onSelectRefugio={setSelectedRefugio} />
         </aside>
 
         {/* SIDEBAR MOBILE */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/60 z-50 flex">
-            <div className="w-[85%] max-w-sm bg-white h-full flex flex-col">
+            <div className="w-[65%] max-w-sm bg-white h-full flex flex-col">
               <div className="p-5 border-b flex justify-between items-center">
                 <h2 className="text-xl font-bold">Menú</h2>
 
@@ -181,7 +232,10 @@ export default function Home() {
                 />
               </div>
 
-              <Sidebar refugios={refugios} />
+              <Sidebar
+                refugios={refugiosFiltrados}
+                onSelectRefugio={setSelectedRefugio}
+              />
             </div>
 
             <div className="flex-1" onClick={() => setSidebarOpen(false)} />
@@ -190,12 +244,20 @@ export default function Home() {
 
         {/* BARRA INFERIOR */}
         <div className="ms-10 hidden lg:flex absolute bottom-6 left-6 right-[420px] z-20 gap-3 flex-wrap justify-center">
-          <StatCard value="28" label="Refugios" icon={<HomeIcon size={18} />} />
-
-          <StatCard value="190" label="Cupos" icon={<HomeIcon size={18} />} />
+          <StatCard
+            value={refugios.length}
+            label="Refugios"
+            icon={<HomeIcon size={18} />}
+          />
 
           <StatCard
-            value="7"
+            value={totalCupos}
+            label="Cupos"
+            icon={<HomeIcon size={18} />}
+          />
+
+          <StatCard
+            value={reportes.length}
             label="Reportes"
             icon={<AlertTriangle size={18} />}
           />
@@ -219,11 +281,19 @@ export default function Home() {
         coords={coords}
       />
 
-      {/* LOGIN MODAL */}
-      <LoginModal
-        open={loginOpen}
-        onClose={() => setLoginOpen(false)}
-        onLogin={(user) => setUsuario(user)}
+      {/* LOGIN */}
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+
+      {/* REGISTER */}
+      <RegisterModal
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+      />
+
+      {/* CREATE REFUGIO */}
+      <CreateRefugioModal
+        open={createRefugioOpen}
+        onClose={() => setCreateRefugioOpen(false)}
       />
     </div>
   );

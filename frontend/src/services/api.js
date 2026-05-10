@@ -1,11 +1,10 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// 🔗 Construye URL limpia
+
 const buildUrl = (endpoint) => {
   return `${BASE_URL.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 };
 
-// 🔥 Core request (una sola función para todo)
 const request = async (
   endpoint,
   method = "GET",
@@ -13,11 +12,14 @@ const request = async (
   token = null,
   extraHeaders = {}
 ) => {
+
   const url = buildUrl(endpoint);
 
   const headers = {
     "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...(token && {
+      Authorization: `Bearer ${token}`,
+    }),
     ...extraHeaders,
   };
 
@@ -25,7 +27,7 @@ const request = async (
     method,
     headers,
     mode: "cors",
-    credentials: "include", // importante si usás cookies/JWT
+    credentials: "include",
   };
 
   if (payload) {
@@ -33,50 +35,116 @@ const request = async (
   }
 
   let res;
+
   try {
     res = await fetch(url, options);
   } catch (err) {
     console.error("Error de red:", err);
-    throw new Error("No se pudo conectar con el servidor");
+
+    throw new Error(
+      "No se pudo conectar con el servidor"
+    );
   }
 
   let data = null;
+
   try {
     data = await res.json();
-  } catch {
-    // puede no haber JSON (ej: DELETE vacío)
-  }
+  } catch {}
 
   if (!res.ok) {
+
+    console.error("ERROR BACKEND:");
+    console.error("Status:", res.status);
+    console.error("Respuesta:", data);
+  
     throw new Error(
-      data?.error || `${method} ${url} → ${res.status}`
+      data?.msg ||
+      data?.error ||
+      JSON.stringify(data) ||
+      `${method} ${url} → ${res.status}`
     );
   }
 
   return data;
 };
 
-
 // ============================
 // 📡 Métodos públicos
 // ============================
 
-export const fetchData = (endpoint, token) =>
+export const fetchData = (
+  endpoint,
+  token
+) =>
   request(endpoint, "GET", null, token);
 
-export const postData = (endpoint, payload, token) =>
-  request(endpoint, "POST", payload, token);
+export const postData = async (
+  endpoint,
+  payload,
+  token
+) => {
 
-export const putData = (endpoint, payload, token) =>
-  request(endpoint, "PUT", payload, token);
+  return await request(
+    endpoint,
+    "POST",
+    payload,
+    token
+  );
+};
 
-export const deleteData = (endpoint, token) =>
-  request(endpoint, "DELETE", null, token);
+export const putData = (
+  endpoint,
+  payload,
+  token
+) =>
+  request(
+    endpoint,
+    "PUT",
+    payload,
+    token
+  );
 
+export const deleteData = (
+  endpoint,
+  token
+) =>
+  request(
+    endpoint,
+    "DELETE",
+    null,
+    token
+  );
 
 // ============================
 // 🔐 Auth
 // ============================
 
-export const loginUser = (email, password) =>
-  request("/login", "POST", { email, password });
+export const loginUser = (
+  email,
+  password
+) =>
+  request(
+    "/login",
+    "POST",
+    { email, password }
+  );
+
+export const registerUser = (
+  username,
+  email,
+  password,
+  rol,
+  refugio_id = null
+) =>
+  request(
+    "/users",
+    "POST",
+    {
+      username,
+      email,
+      password,
+      rol,
+      refugio_id,
+    }
+  );

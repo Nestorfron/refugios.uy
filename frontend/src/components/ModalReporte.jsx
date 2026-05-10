@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { X, MapPin, AlertTriangle } from "lucide-react";
+import { postData } from "../services/api";
+import { useAppContext } from "../context/AppContext";
 
 export default function ModalReporte({ open, onClose, coords }) {
   const [descripcion, setDescripcion] = useState("");
   const [tipo, setTipo] = useState("");
+  const { refreshData } = useAppContext();
 
   if (!open) return null;
 
@@ -17,11 +20,15 @@ export default function ModalReporte({ open, onClose, coords }) {
       lng: coords?.lng,
     };
 
-    console.log("REPORTE:", reporte);
+    try {
+      postData( "/reportes", reporte, localStorage.getItem("token"));
+    } catch (error) {
+      alert(error.message);
+    }
 
-    // reset
     setDescripcion("");
     setTipo("");
+    refreshData();
     onClose();
   };
 

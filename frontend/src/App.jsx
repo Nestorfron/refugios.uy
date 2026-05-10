@@ -5,7 +5,7 @@ import { registerSW } from "virtual:pwa-register";
 // 📄 Pages
 import Home from "./pages/Home";
 import Mapa from "./pages/Mapa";
-import Reportar from "./pages/Reportar";
+
 
 function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -39,9 +39,6 @@ function App() {
 
           {/* 🗺️ Mapa */}
           <Route path="/mapa" element={<Mapa />} />
-
-          {/* 🚨 Reportar */}
-          <Route path="/reportar" element={<Reportar />} />
         </Routes>
       </BrowserRouter>
 

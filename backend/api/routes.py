@@ -40,12 +40,13 @@ def create_user():
         return jsonify({"error": "Username already exists"}), 400
 
     user = User(
-        username=username,
-        password=generate_password_hash(password),
-        email=email,
-        rol=data.get("rol", "OPERADOR"),
-        active=True
-    )
+    username=username,
+    password=generate_password_hash(password),
+    email=email,
+    rol=data.get("rol", "OPERADOR"),
+    refugio_id=data.get("refugio_id"),
+    active=True
+)
 
     db.session.add(user)
     db.session.commit()
@@ -97,19 +98,32 @@ def delete_user(user_id):
 # =========================
 @api.route("/login", methods=["POST"])
 def login():
+
     data = request.get_json()
 
-    user = User.query.filter_by(username=data.get("username")).first()
+    user = User.query.filter_by(
+        email=data.get("email")
+    ).first()
 
-    if not user or not check_password_hash(user.password, data.get("password")):
-        return jsonify({"error": "Invalid credentials"}), 401
+    if not user or not check_password_hash(
+        user.password,
+        data.get("password")
+    ):
+        return jsonify({
+            "error": "Invalid credentials"
+        }), 401
 
-    token = create_access_token(identity=user.id, additional_claims={"rol": user.rol})
+    token = create_access_token(
+        identity=str(user.id),
+        additional_claims={
+            "rol": user.rol
+        }
+    )
 
     return jsonify({
         "token": token,
         "user": user.serialize()
-    })
+    }), 200
 
 
 # =========================
@@ -122,7 +136,7 @@ def get_refugios():
 
 
 @api.route("/refugios", methods=["POST"])
-@jwt_required()
+
 def create_refugio():
     data = request.get_json()
 
@@ -137,7 +151,7 @@ def create_refugio():
         telefono=data.get("telefono"),
         capacidad_total=data.get("capacidad_total"),
         cupos_disponibles=data.get("cupos_disponibles"),
-        actualizado_en=datetime.utcnow()
+        actualizado_en=datetime.now()
     )
 
     db.session.add(refugio)
@@ -159,7 +173,7 @@ def update_refugio(id):
         if field in data:
             setattr(refugio, field, data[field])
 
-    refugio.actualizado_en = datetime.utcnow()
+    refugio.actualizado_en = datetime.now()
 
     db.session.commit()
 
