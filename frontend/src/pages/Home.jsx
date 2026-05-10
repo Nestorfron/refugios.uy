@@ -24,10 +24,6 @@ import {
   UserPlus,
   Building2,
   LogOut,
-  Clock,
-  Thermometer,
-  CloudRain,
-  Activity,
 } from "lucide-react";
 
 export default function Home() {
@@ -88,22 +84,6 @@ export default function Home() {
     return coincideBusqueda && coincideDisponibles;
   });
 
-  // REPORTES
-
-  const getUrgenciaScore = (r) => {
-    let score = 0;
-
-    if (r.salud) score += 3;
-    if (r.esta_solo) score += 2;
-    if (r.frio) score += 1;
-    if (r.lluvia) score += 1;
-
-    return score;
-  };
-
-  const reportesOrdenados = [...reportes].sort(
-    (a, b) => getUrgenciaScore(b) - getUrgenciaScore(a)
-  );
 
   const getUrgenciaColor = (r) => {
     if (r.estado_persona === "critico") return "bg-red-500";
@@ -113,7 +93,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
+    <div className="flex flex-col h-100vh bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
       {/* NAVBAR */}
       <header className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-30 shadow-sm">
         {/* LOGO */}
