@@ -16,6 +16,8 @@ import LoadingScreen from "../components/LoadingScreen";
 
 import Logo from "../assets/favicon.svg";
 
+
+
 import {
   Search,
   SlidersHorizontal,
@@ -29,6 +31,7 @@ import {
   UserPlus,
   Building2,
   LogOut,
+  MapPin,
 } from "lucide-react";
 
 export default function Home() {
@@ -179,6 +182,36 @@ export default function Home() {
             </button>
           )}
 
+          {/* MOBILE ACTIONS */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* REFUGIOS */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="group relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#008f72] to-[#00b894] shadow-lg shadow-emerald-500/20 overflow-hidden border border-white/20"
+            >
+              {/* EFECTO */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-white/10 transition" />
+
+              <MapPin size={20} className="relative text-white" />
+            </button>
+
+            {/* REPORTES */}
+            {user?.rol === "ADMIN" && (
+              <button
+                onClick={() => setReportsOpen(true)}
+                className="group relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/20 overflow-hidden border border-white/20"
+              >
+                {/* EFECTO */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-white/10 transition" />
+
+                <AlertTriangle
+                  size={20}
+                  className="relative text-white animate-pulse"
+                />
+              </button>
+            )}
+          </div>
+
           {/* LOGIN / LOGOUT */}
           <button
             onClick={handleUserButton}
@@ -197,14 +230,6 @@ export default function Home() {
             ) : (
               <User size={19} className="relative" />
             )}
-          </button>
-
-          {/* MOBILE MENU */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition"
-          >
-            <Menu size={22} className="text-gray-700" />
           </button>
         </div>
       </header>

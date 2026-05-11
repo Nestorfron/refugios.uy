@@ -27,6 +27,8 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem("user");
 
     setReportes([]);
+    setReportesCerrados([]);
+    setReportesAbiertos([]);
 
     setUser(null);
   };

@@ -5,15 +5,13 @@ import {
   Marker,
   Popup,
   useMapEvents,
-
 } from "react-leaflet";
 import L from "leaflet";
-import { LocateFixed, MapPin, Phone } from "lucide-react";
+import { LocateFixed, MapPin, Phone, Navigation } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import { useAppContext } from "../context/AppContext";
 import pinIcon from "../assets/pin.svg";
 import Logo from "../assets/favicon.svg";
-
 
 /* ICONOS */
 const refugioIcon = new L.Icon({
@@ -27,6 +25,24 @@ const userIcon = new L.DivIcon({
   html: `<div style="width:16px;height:16px;background:#1e90ff;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>`,
   iconSize: [16, 16],
 });
+
+const calcularDistancia = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
 
 /* CLICK MAPA */
 const ClickHandler = ({ onMapClick }) => {
@@ -51,6 +67,34 @@ const Mapa = ({
 
   const [userLocation, setUserLocation] = useState(null);
   const [followUser, setFollowUser] = useState(true);
+
+  const refugiosConDistancia = refugios
+    .map((r) => {
+      if (!userLocation) {
+        return {
+          ...r,
+          distancia: null,
+        };
+      }
+
+      const distancia = calcularDistancia(
+        userLocation[0],
+        userLocation[1],
+        Number(r.lat),
+        Number(r.lng)
+      );
+
+      return {
+        ...r,
+        distancia,
+      };
+    })
+    .sort((a, b) => {
+      if (a.distancia == null) return 1;
+      if (b.distancia == null) return -1;
+
+      return a.distancia - b.distancia;
+    });
 
   /* 1. GPS TRACKING */
   useEffect(() => {
@@ -194,6 +238,18 @@ const Mapa = ({
     });
   };
 
+  /* NAVEGACIÓN */
+
+  const abrirNavegacion = (lat, lng, label = "") => {
+    const destino = `${lat},${lng}`;
+
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destino}&destination_place_id=${encodeURIComponent(
+      label
+    )}`;
+
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="h-full w-full relative">
       <MapContainer
@@ -210,7 +266,7 @@ const Mapa = ({
         <ClickHandler onMapClick={onMapClick} />
 
         {/* REFUGIOS */}
-        {refugios.map((r) => (
+        {refugiosConDistancia.map((r) => (
           <Marker
             key={r.id}
             position={[r.lat, r.lng]}
@@ -282,12 +338,21 @@ const Mapa = ({
                         : "Sin cupos"}
                     </div>
 
-                    {r.distancia && (
+                    {r.distancia != null && (
                       <span className="text-xs text-gray-400 font-semibold">
-                        {r.distancia}
+                        {r.distancia.toFixed(1)} km
                       </span>
                     )}
                   </div>
+
+                  {/* NAVEGACIÓN */}
+                  <button
+                    onClick={() => abrirNavegacion(r.lat, r.lng, r.nombre)}
+                    className="m-auto border p-2 rounded mt-3 flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#008f72] transition"
+                  >
+                    <Navigation size={13} />
+                    Cómo llegar
+                  </button>
                 </div>
               </div>
             </Popup>
@@ -352,6 +417,17 @@ const Mapa = ({
                       </span>
                     )}
                   </div>
+
+                  {/* NAVEGACIÓN */}
+                  <button
+                    onClick={() =>
+                      abrirNavegacion(rep.lat, rep.lng, `Reporte ${rep.id}`)
+                    }
+                    className="m-auto p-2 border rounded mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-amber-600 transition"
+                  >
+                    <Navigation size={13} />
+                    Ir al lugar
+                  </button>
                 </div>
               </Popup>
             </Marker>
