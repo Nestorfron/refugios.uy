@@ -113,7 +113,7 @@ export default function Home() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="flex flex-col h-screen bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
+    <div className="flex flex-col h-[100dvh] bg-[#f8fafc] overflow-hidden font-sans antialiased text-gray-900">
       {/* NAVBAR */}
       <header className="relative bg-white/90 backdrop-blur-2xl border-b border-white/20 px-4 md:px-6 py-4 flex items-center justify-between z-30 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         {/* EFECTO */}
@@ -209,7 +209,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex flex-1 relative overflow-hidden">
+      <main className="flex flex-1 relative overflow-hidden min-h-0">
         {/* MAPA */}
         <div className="absolute inset-0 z-0">
           <Mapa
