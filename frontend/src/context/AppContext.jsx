@@ -11,6 +11,10 @@ export const AppProvider = ({ children }) => {
 
   const [reportes, setReportes] = useState([]);
 
+  const [reportesCerrados, setReportesCerrados] = useState([]);
+
+  const [reportesAbiertos, setReportesAbiertos] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   // TOTAL CUPOS
@@ -40,8 +44,18 @@ export const AppProvider = ({ children }) => {
         const refugiosData = await fetchData("/refugios");
     
         setRefugios(refugiosData);
-    
-        setReportes(await fetchData("/reportes", localStorage.getItem("token")));
+
+        const reportesData = await fetchData("/reportes", localStorage.getItem("token"));
+
+        setReportes(reportesData);
+
+        const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
+
+        setReportesAbiertos(reportesAbiertos);
+
+        const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
+
+        setReportesCerrados(reportesCerrados);
        
       } catch (error) {
         console.error("Error cargando datos:", error);
@@ -63,11 +77,25 @@ export const AppProvider = ({ children }) => {
     if (token) {
       const reportesData = await fetchData("/reportes", token);
       setReportes(reportesData);
+
+      const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
+
+      setReportesAbiertos(reportesAbiertos);
+
+      const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
+
+      setReportesCerrados(reportesCerrados);
+
     } else {
+
       setReportes([]);
+
     }
+
   } catch (error) {
+
     console.error(error);
+    
   }
 };
 
@@ -82,6 +110,12 @@ export const AppProvider = ({ children }) => {
 
         reportes,
         setReportes,
+
+        reportesCerrados,
+        setReportesCerrados,
+
+        reportesAbiertos,
+        setReportesAbiertos,
 
         refreshData,
 

@@ -5,12 +5,15 @@ import {
   Marker,
   Popup,
   useMapEvents,
+
 } from "react-leaflet";
 import L from "leaflet";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, MapPin, Phone } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import { useAppContext } from "../context/AppContext";
 import pinIcon from "../assets/pin.svg";
+import Logo from "../assets/favicon.svg";
+
 
 /* ICONOS */
 const refugioIcon = new L.Icon({
@@ -42,9 +45,9 @@ const Mapa = ({
   selectedRefugio,
   selectedReport,
 }) => {
-  const { refugios, reportes } = useAppContext();
+  const { refugios, reportesAbiertos } = useAppContext();
   const mapRef = useRef(null);
-  const reportRefs = useRef({}); // Usamos plural para mayor claridad
+  const reportRefs = useRef({});
 
   const [userLocation, setUserLocation] = useState(null);
   const [followUser, setFollowUser] = useState(true);
@@ -104,16 +107,90 @@ const Mapa = ({
 
   /* ICONOS DINÁMICOS PARA REPORTES */
   const getReporteIcon = (rep) => {
-    const color =
+    const outerColor =
       rep.estado_persona === "critico"
         ? "#ef4444"
         : rep.salud
         ? "#f97316"
+        : "#facc15";
+
+    const innerColor =
+      rep.estado_persona === "critico"
+        ? "#dc2626"
+        : rep.salud
+        ? "#ea580c"
         : "#f59e0b";
+
     return new L.DivIcon({
       className: "",
-      html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [16, 16],
+      html: `
+        <div
+          style="
+            width:64px;
+            height:64px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.35));
+            animation:pulseWarning 2s infinite;
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            width="48"
+            height="48"
+          >
+            <!-- TRIANGULO EXTERNO -->
+            <path
+              d="M32 4 L60 56 H4 Z"
+              fill="${outerColor}"
+              stroke="white"
+              stroke-width="2"
+            />
+  
+            <!-- TRIANGULO INTERNO -->
+            <path
+              d="M32 12 L52 50 H12 Z"
+              fill="${innerColor}"
+            />
+  
+            <!-- SIGNO -->
+            <rect
+              x="30"
+              y="20"
+              width="4"
+              height="20"
+              rx="2"
+              fill="#111"
+            />
+  
+            <circle
+              cx="32"
+              cy="46"
+              r="3"
+              fill="#111"
+            />
+          </svg>
+        </div>
+  
+        <style>
+          @keyframes pulseWarning {
+            0% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.08);
+            }
+            100% {
+              transform: scale(1);
+            }
+          }
+        </style>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [26, 48],
+      popupAnchor: [0, -42],
     });
   };
 
@@ -138,19 +215,88 @@ const Mapa = ({
             key={r.id}
             position={[r.lat, r.lng]}
             icon={refugioIcon}
-            eventHandlers={{ click: () => setFollowUser(false) }}
+            eventHandlers={{
+              click: () => setFollowUser(false),
+            }}
           >
-            <Popup>
-              <h3 className="font-bold">{r.nombre}</h3>
-              <p className="text-xs">{r.direccion}</p>
-              <p className="text-xs font-semibold">Cupos: {r.cupos_disponibles}</p>
+            <Popup className="custom-popup">
+              <div className="w-[240px] overflow-hidden rounded-2xl">
+                {/* IMAGE */}
+                <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                  <img
+                    src={r.imagen || Logo}
+                    alt={r.nombre}
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* OVERLAY */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                  {/* CUPOS */}
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-lg">
+                    <span className="text-xs font-extrabold text-[#008f72]">
+                      {r.cupos_disponibles} cupos
+                    </span>
+                  </div>
+
+                  {/* TITLE */}
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-white font-extrabold text-lg leading-tight drop-shadow">
+                      {r.nombre}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* CONTENT */}
+                <div className="p-4 bg-white">
+                  {/* ADDRESS */}
+                  <div className="flex items-start gap-2 text-sm text-gray-600">
+                    <MapPin
+                      size={15}
+                      className="text-[#008f72] mt-0.5 shrink-0"
+                    />
+
+                    <span className="leading-relaxed">{r.direccion}</span>
+                  </div>
+
+                  {/* PHONE */}
+                  {r.telefono && (
+                    <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
+                      <Phone size={15} className="text-[#008f72]" />
+
+                      <span>{r.telefono}</span>
+                    </div>
+                  )}
+
+                  {/* FOOTER */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        Number(r.cupos_disponibles) > 0
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {Number(r.cupos_disponibles) > 0
+                        ? "Disponible"
+                        : "Sin cupos"}
+                    </div>
+
+                    {r.distancia && (
+                      <span className="text-xs text-gray-400 font-semibold">
+                        {r.distancia}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </Popup>
           </Marker>
         ))}
 
         {/* REPORTES (Solo una vez y dentro de MapContainer) */}
         {mostrarReportes &&
-          reportes.map((rep) => (
+          reportesAbiertos.map((rep) => (
             <Marker
               key={rep.id}
               position={[rep.lat, rep.lng]}
@@ -168,21 +314,43 @@ const Mapa = ({
                           Reporte #{rep.id}
                         </h3>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">
-                          {rep.creado_en ? new Date(rep.creado_en).toLocaleDateString("es-UY") : "Reciente"}
+                          {rep.creado_en
+                            ? new Date(rep.creado_en).toLocaleDateString(
+                                "es-UY"
+                              )
+                            : "Reciente"}
                         </p>
                       </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
-                      rep.estado_persona === "critico" ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
-                    }`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
+                        rep.estado_persona === "critico"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-amber-100 text-amber-600"
+                      }`}
+                    >
                       {rep.estado_persona || "Estándar"}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">{rep.descripcion || "Sin descripción."}</p>
+                  <p className="text-sm text-gray-600">
+                    {rep.descripcion || "Sin descripción."}
+                  </p>
                   <div className="flex flex-wrap gap-1.5 pt-2">
-                    {rep.salud && <span className="bg-red-50 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-red-100">SALUD</span>}
-                    {rep.frio && <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-blue-100">❄️ FRÍO</span>}
-                    {rep.lluvia && <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-indigo-100">🌧️ LLUVIA</span>}
+                    {rep.salud && (
+                      <span className="bg-red-50 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-red-100">
+                        SALUD
+                      </span>
+                    )}
+                    {rep.frio && (
+                      <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-blue-100">
+                        ❄️ FRÍO
+                      </span>
+                    )}
+                    {rep.lluvia && (
+                      <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-bold border border-indigo-100">
+                        🌧️ LLUVIA
+                      </span>
+                    )}
                   </div>
                 </div>
               </Popup>

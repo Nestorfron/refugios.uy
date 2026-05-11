@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { X, MapPin, AlertTriangle } from "lucide-react";
+import {
+  X,
+  MapPin,
+  AlertTriangle,
+  Thermometer,
+  CloudRain,
+  Activity,
+  User,
+} from "lucide-react";
+
 import { postData } from "../services/api";
 import { useAppContext } from "../context/AppContext";
 
@@ -10,7 +19,7 @@ export default function ModalReporte({ open, onClose, coords }) {
   const [frio, setFrio] = useState(false);
   const [lluvia, setLluvia] = useState(false);
   const [salud, setSalud] = useState(false);
-
+  const [loading, setLoading] = useState(false);
 
   const { refreshData, user } = useAppContext();
 
@@ -19,24 +28,28 @@ export default function ModalReporte({ open, onClose, coords }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const reporte = {
-      descripcion,
-      estado_persona: estadoPersona,
-      esta_solo: estaSolo,
-      frio,
-      lluvia,
-      salud,
-      lat: coords?.lat,
-      lng: coords?.lng,
-    };
-
     try {
-      await postData("/reportes", reporte, localStorage.getItem("token"));
+      setLoading(true);
+
+      const reporte = {
+        descripcion,
+        estado_persona: estadoPersona,
+        esta_solo: estaSolo,
+        frio,
+        lluvia,
+        salud,
+        lat: coords?.lat,
+        lng: coords?.lng,
+      };
+
+      await postData(
+        "/reportes",
+        reporte,
+        localStorage.getItem("token")
+      );
 
       if (user === null) {
         alert("Reporte creado correctamente");
-        onClose();
-        return;
       } else {
         refreshData();
       }
@@ -51,110 +64,178 @@ export default function ModalReporte({ open, onClose, coords }) {
       onClose();
     } catch (error) {
       alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const CheckCard = ({
+    active,
+    onClick,
+    icon,
+    label,
+    activeColor,
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-3 p-3 rounded-2xl border transition-all text-sm font-semibold ${
+        active
+          ? `${activeColor} border-transparent shadow-lg scale-[1.02]`
+          : "bg-white border-gray-200 text-gray-600 hover:border-[#008f72]/40"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold text-lg flex items-center gap-2">
-            <AlertTriangle className="text-orange-500" />
-            Reportar situación
-          </h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+      <div className="relative bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* TOP */}
+        <div className="relative bg-gradient-to-br from-[#008f72] to-[#00b894] px-6 py-6 text-white">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,white,transparent_40%)]" />
 
-          <button onClick={onClose}>
-            <X />
-          </button>
+          <div className="relative flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/10">
+                  <AlertTriangle size={24} />
+                </div>
+
+                <div>
+                  <h2 className="font-extrabold text-xl">
+                    Reportar situación
+                  </h2>
+
+                  <p className="text-sm text-white/80">
+                    Ayudanos a identificar personas en riesgo
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2 text-sm text-white/90 bg-white/10 w-fit px-3 py-2 rounded-xl">
+                <MapPin size={15} />
+
+                {coords
+                  ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
+                  : "Seleccioná un punto"}
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* UBICACION */}
-        <div className="text-xs text-gray-500 mb-4 flex items-center gap-1">
-          <MapPin size={14} />
-          {coords
-            ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
-            : "Seleccioná un punto en el mapa"}
-        </div>
-
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ESTADO PERSONA */}
-          <select
-            value={estadoPersona}
-            onChange={(e) => setEstadoPersona(e.target.value)}
-            className="w-full border rounded-xl p-2 text-sm"
-            required
-          >
-            <option value="">Estado de la persona</option>
-            <option value="estable">Estable</option>
-            <option value="critico">Crítico</option>
-            <option value="inconsciente">Inconsciente</option>
-          </select>
-
-          {/* CHECKS */}
-          <div className="flex flex-col gap-2 text-sm">
-            <label>
-              <input
-                type="checkbox"
-                checked={estaSolo}
-                onChange={(e) => setEstaSolo(e.target.checked)}
-              />{" "}
-              Está solo
+        {/* BODY */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 bg-[#f8fafc]"
+        >
+          {/* ESTADO */}
+          <div>
+            <label className="text-sm font-bold text-gray-700 mb-2 block">
+              Estado de la persona
             </label>
 
-            <label>
-              <input
-                type="checkbox"
-                checked={frio}
-                onChange={(e) => setFrio(e.target.checked)}
-              />{" "}
-              Tiene frío
+            <select
+              value={estadoPersona}
+              onChange={(e) =>
+                setEstadoPersona(e.target.value)
+              }
+              className="w-full bg-white border border-gray-200 rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#008f72]/20"
+              required
+            >
+              <option value="">Seleccionar estado</option>
+              <option value="estable">🟢 Estable</option>
+              <option value="critico">🔴 Crítico</option>
+              <option value="inconsciente">
+                ⚫ Inconsciente
+              </option>
+            </select>
+          </div>
+
+          {/* OPCIONES */}
+          <div>
+            <label className="text-sm font-bold text-gray-700 mb-3 block">
+              Situación detectada
             </label>
 
-            <label>
-              <input
-                type="checkbox"
-                checked={lluvia}
-                onChange={(e) => setLluvia(e.target.checked)}
-              />{" "}
-              Expuesto a lluvia
-            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <CheckCard
+                active={estaSolo}
+                onClick={() => setEstaSolo(!estaSolo)}
+                icon={<User size={18} />}
+                label="Está solo"
+                activeColor="bg-gray-900 text-white"
+              />
 
-            <label>
-              <input
-                type="checkbox"
-                checked={salud}
-                onChange={(e) => setSalud(e.target.checked)}
-              />{" "}
-              Problema de salud
-            </label>
+              <CheckCard
+                active={frio}
+                onClick={() => setFrio(!frio)}
+                icon={<Thermometer size={18} />}
+                label="Tiene frío"
+                activeColor="bg-blue-500 text-white"
+              />
+
+              <CheckCard
+                active={lluvia}
+                onClick={() => setLluvia(!lluvia)}
+                icon={<CloudRain size={18} />}
+                label="Lluvia"
+                activeColor="bg-indigo-500 text-white"
+              />
+
+              <CheckCard
+                active={salud}
+                onClick={() => setSalud(!salud)}
+                icon={<Activity size={18} />}
+                label="Problema salud"
+                activeColor="bg-red-500 text-white"
+              />
+            </div>
           </div>
 
           {/* DESCRIPCION */}
-          <textarea
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            placeholder="Descripción breve (opcional)"
-            className="w-full border rounded-xl p-2 text-sm"
-            rows={3}
-          />
+          <div>
+            <label className="text-sm font-bold text-gray-700 mb-2 block">
+              Descripción
+            </label>
+
+            <textarea
+              value={descripcion}
+              onChange={(e) =>
+                setDescripcion(e.target.value)
+              }
+              placeholder="Agregá detalles importantes..."
+              rows={4}
+              className="w-full bg-white border border-gray-200 rounded-2xl p-3 text-sm outline-none resize-none focus:ring-2 focus:ring-[#008f72]/20"
+            />
+          </div>
 
           {/* BOTONES */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border rounded-xl py-2 text-sm"
+              className="flex-1 py-3 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-semibold transition"
             >
               Cancelar
             </button>
 
             <button
               type="submit"
-              className="flex-1 bg-[#008f72] text-white rounded-xl py-2 text-sm font-semibold"
+              disabled={loading}
+              className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-[#008f72] to-[#00b894] hover:opacity-90 text-white text-sm font-bold shadow-lg transition disabled:opacity-50"
             >
-              Enviar
+              {loading ? "Enviando..." : "Enviar reporte"}
             </button>
           </div>
         </form>
