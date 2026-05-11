@@ -221,52 +221,6 @@ export default function Home() {
               setModalOpen(true);
             }}
           />
-
-          {/* SEARCH + FILTERS */}
-          <div className="absolute top-5 left-14 right-5 md:right-auto z-[1000]">
-            <div className="flex flex-col md:flex-row gap-3 md:items-center">
-              {/* SEARCH */}
-              <div className="bg-white/95 backdrop-blur-xl border border-white/40 rounded-2xl flex items-center px-4 py-3 shadow-2xl w-full md:w-[360px]">
-                <Search size={18} className="text-gray-400 mr-3 shrink-0" />
-
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar refugios..."
-                  className="outline-none w-full bg-transparent text-sm font-medium placeholder:text-gray-400"
-                />
-
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    className="ml-2 text-gray-400 hover:text-gray-700"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-
-              {/* FILTRO */}
-              <button
-                onClick={() => setSoloDisponibles(!soloDisponibles)}
-                className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl shadow-xl border transition-all font-semibold text-sm backdrop-blur-xl ${
-                  soloDisponibles
-                    ? "bg-[#008f72] text-white border-[#008f72]"
-                    : "bg-white/95 text-gray-700 border-white/40 hover:bg-gray-50"
-                }`}
-              >
-                <SlidersHorizontal size={16} />
-                Disponibles
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${
-                    soloDisponibles ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* SIDEBAR MOBILE */}
