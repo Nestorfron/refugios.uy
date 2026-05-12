@@ -38,6 +38,7 @@ export default function Home() {
   const {
     user,
     refugios,
+    userRefugio,
     totalCupos,
     reportesAbiertos,
     reportesCerrados,
@@ -83,6 +84,7 @@ export default function Home() {
 
     return coincideBusqueda && coincideDisponibles;
   });
+
 
   useEffect(() => {
     if (
@@ -263,6 +265,7 @@ export default function Home() {
 
               <Sidebar
                 refugios={refugiosFiltrados}
+                userRef={userRefugio}
                 onSelectRefugio={(r) => {
                   setSelectedRefugio(r);
                 }}
@@ -286,6 +289,7 @@ export default function Home() {
             <div className="relative w-[90%] md:w-[420px] h-full bg-white shadow-2xl z-[1001] animate-in slide-in-from-left duration-300">
               <Sidebar
                 refugios={refugiosFiltrados}
+                userRef={userRefugio}
                 onSelectRefugio={(r) => {
                   setSelectedRefugio(r);
                 }}

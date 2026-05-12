@@ -9,7 +9,7 @@ export const AppProvider = ({ children }) => {
 
   const [refugios, setRefugios] = useState([]);
 
-  const [userRefugios, setuserRefugios] = useState([]);
+  const [userRefugio, setUserRefugio] = useState(null);
 
   const [reportes, setReportes] = useState([]);
 
@@ -31,6 +31,7 @@ export const AppProvider = ({ children }) => {
     setReportes([]);
     setReportesCerrados([]);
     setReportesAbiertos([]);
+    setUserRefugio(null)
 
     setUser(null);
   };
@@ -38,7 +39,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
 
-    const token  = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -53,15 +54,19 @@ export const AppProvider = ({ children }) => {
 
         if (token) {
 
-          const id = user.id
+          const id = (JSON.parse(savedUser).id)
 
-          console.log(id)
+          const userRefugioData = await fetchData("/refugios/usuario/" + id, localStorage.getItem("token"));
 
-          const userRefugiosData = await fetchData("/refugios/usuario/"+ id, localStorage.getItem("token"));
+          if (!userRefugioData) {
 
-          setuserRefugios(userRefugiosData);
+            setUserRefugio(null);
 
-          console.log(userRefugiosData);
+          } else {
+
+            setUserRefugio(userRefugioData);
+
+          }
 
           const reportesData = await fetchData("/reportes", localStorage.getItem("token"));
 
@@ -75,16 +80,22 @@ export const AppProvider = ({ children }) => {
 
           setReportesCerrados(reportesCerrados);
 
-        } else { 
+        } else {
 
           setReportes([]);
+
+          setUserRefugio(null)
 
         }
 
       } catch (error) {
+
         console.error("Error cargando datos:", error);
+
       } finally {
+
         setLoading(false);
+
       }
     };
 
@@ -92,16 +103,34 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const refreshData = async () => {
+
     try {
       const token = localStorage.getItem("token");
 
+      const savedUser = localStorage.getItem("user");
+
       const refugiosData = await fetchData("/refugios");
+
       setRefugios(refugiosData);
 
       if (token) {
 
+        const id = (JSON.parse(savedUser).id)
+
+        const userRefugioData = await fetchData("/refugios/usuario/" + id, localStorage.getItem("token"));
+
+        if (!userRefugioData) {
+
+            setUserRefugio(null);
+
+          } else {
+
+            setUserRefugio(userRefugioData);
+
+          }
+
         const reportesData = await fetchData("/reportes", token);
-        
+
         setReportes(reportesData);
 
         const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
@@ -115,6 +144,8 @@ export const AppProvider = ({ children }) => {
       } else {
 
         setReportes([]);
+
+        setUserRefugio(null);
 
       }
 
@@ -133,6 +164,8 @@ export const AppProvider = ({ children }) => {
 
         refugios,
         setRefugios,
+
+        userRefugio,
 
         reportes,
         setReportes,
