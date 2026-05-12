@@ -114,7 +114,7 @@ const Mapa = ({
     if (followUser && userLocation && mapRef.current) {
       mapRef.current.flyTo(userLocation, 16, { animate: true, duration: 1.5 });
     }
-  }, [userLocation, followUser]);
+  }, []);
 
   /* 3. ENFOQUE EN REPORTE SELECCIONADO */
   useEffect(() => {

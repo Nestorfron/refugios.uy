@@ -191,6 +191,21 @@ def delete_refugio(id):
     db.session.commit()
 
     return jsonify({"msg": "Deleted"})
+    
+
+@api.route("/refugios/usuario/<int:id>", methods=["GET"])
+@jwt_required()
+def get_user_refugio(id):
+    user = User.query.get(id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not user.refugio:
+        return jsonify({"error": "User has no assigned refugio"}), 404
+
+    return jsonify(user.refugio.serialize()), 200
+
 
 
 # =========================

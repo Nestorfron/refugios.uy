@@ -9,6 +9,8 @@ export const AppProvider = ({ children }) => {
 
   const [refugios, setRefugios] = useState([]);
 
+  const [userRefugios, setuserRefugios] = useState([]);
+
   const [reportes, setReportes] = useState([]);
 
   const [reportesCerrados, setReportesCerrados] = useState([]);
@@ -36,29 +38,49 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
 
+    const token  = localStorage.getItem("token");
+
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
 
     const loadData = async () => {
       try {
-    
+
         const refugiosData = await fetchData("/refugios");
-    
+
         setRefugios(refugiosData);
 
-        const reportesData = await fetchData("/reportes", localStorage.getItem("token"));
+        if (token) {
 
-        setReportes(reportesData);
+          const id = user.id
 
-        const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
+          console.log(id)
 
-        setReportesAbiertos(reportesAbiertos);
+          const userRefugiosData = await fetchData("/refugios/usuario/"+ id, localStorage.getItem("token"));
 
-        const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
+          setuserRefugios(userRefugiosData);
 
-        setReportesCerrados(reportesCerrados);
-       
+          console.log(userRefugiosData);
+
+          const reportesData = await fetchData("/reportes", localStorage.getItem("token"));
+
+          setReportes(reportesData);
+
+          const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
+
+          setReportesAbiertos(reportesAbiertos);
+
+          const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
+
+          setReportesCerrados(reportesCerrados);
+
+        } else { 
+
+          setReportes([]);
+
+        }
+
       } catch (error) {
         console.error("Error cargando datos:", error);
       } finally {
@@ -70,36 +92,38 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const refreshData = async () => {
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const refugiosData = await fetchData("/refugios");
-    setRefugios(refugiosData);
+      const refugiosData = await fetchData("/refugios");
+      setRefugios(refugiosData);
 
-    if (token) {
-      const reportesData = await fetchData("/reportes", token);
-      setReportes(reportesData);
+      if (token) {
 
-      const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
+        const reportesData = await fetchData("/reportes", token);
+        
+        setReportes(reportesData);
 
-      setReportesAbiertos(reportesAbiertos);
+        const reportesAbiertos = reportesData.filter((r) => r.estado === "pendiente");
 
-      const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
+        setReportesAbiertos(reportesAbiertos);
 
-      setReportesCerrados(reportesCerrados);
+        const reportesCerrados = reportesData.filter((r) => r.estado === "cerrado");
 
-    } else {
+        setReportesCerrados(reportesCerrados);
 
-      setReportes([]);
+      } else {
+
+        setReportes([]);
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
 
     }
-
-  } catch (error) {
-
-    console.error(error);
-    
-  }
-};
+  };
 
   return (
     <AppContext.Provider
